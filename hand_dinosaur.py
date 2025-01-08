@@ -5,7 +5,7 @@ import pyautogui
 
 cap =cv2.VideoCapture(0)
 mpHands = mp.solutions.hands
-hands = mpHands.Hands()
+hands = mpHands.Hands(min_detection_confidence=0.8, min_tracking_confidence=0.8, max_num_hands=1)
 mpDraw = mp.solutions.drawing_utils
 
 pTime =0
@@ -14,7 +14,7 @@ cTime =0
 down_held = False 
 start_hold_time = None  
 space_held = False
-start_space_time = None
+
 
 while True:
     success,img=cap.read()
@@ -35,12 +35,11 @@ while True:
             if not space_held:  # Chỉ nhấn khi space chưa được giữ
                 pyautogui.press('space')
                 space_held = True
-                start_space_time = time.time()
                 print("đang nhấn space")
         else:
             if space_held:
                 space_held = False
-                start_space_time = None
+                print("đang hủy space")
 
   # giữ phím down          
         if distance2 < 25:
