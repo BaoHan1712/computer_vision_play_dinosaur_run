@@ -5,27 +5,23 @@ import pyautogui
 
 cap =cv2.VideoCapture(0)
 mpHands = mp.solutions.hands
-# phát hiện tay
 hands = mpHands.Hands()
-# vẽ lại các khớp tay
 mpDraw = mp.solutions.drawing_utils
-# tính FPS
+
 pTime =0
 cTime =0
 
-# giữ phím Down Arrow
 down_held = False 
-# Bắt đầu giữ phím
 start_hold_time = None  
+space_held = False
+start_space_time = None
+
 while True:
     success,img=cap.read()
-    # chuyển màu từ BGR sang RGB
     imRGB = cv2.cvtColor(img,cv2.COLOR_BGR2RGB)
-    # xử lý ảnh để phát hiện bàn tay
     results = hands.process(imRGB)
     
     if results.multi_hand_landmarks:
-    # duyệt qua từng ngón tay
         for handLms in results.multi_hand_landmarks:
             lmList = [(int(lm.x * img.shape[1]), int(lm.y * img.shape[0])) for lm in handLms.landmark]
             mpDraw.draw_landmarks(img,handLms,mpHands.HAND_CONNECTIONS)
@@ -35,14 +31,19 @@ while True:
         thumb_tip2, index_tip2 = lmList[4], lmList[12]
         distance2 = ((thumb_tip2[0] - index_tip2[0]) ** 2 + (thumb_tip2[1] - index_tip2[1]) ** 2) ** 0.5
     
-# nếu khoảng cách nhỏ hơn 40 thì .....
-        if distance1 < 45:
-            pyautogui.press('space') 
-            # start_time = time.time()
-            print("đang chạm nút space nè")
-            
+        if distance1 < 25:
+            if not space_held:  # Chỉ nhấn khi space chưa được giữ
+                pyautogui.press('space')
+                space_held = True
+                start_space_time = time.time()
+                print("đang nhấn space")
+        else:
+            if space_held:
+                space_held = False
+                start_space_time = None
+
   # giữ phím down          
-        if distance2 < 45:
+        if distance2 < 25:
             if not down_held:
                 pyautogui.keyDown('down')
                 start_hold_time = time.time()
@@ -53,8 +54,7 @@ while True:
                 pyautogui.keyUp('down')
                 down_held = False
                 start_hold_time = None
-                
-#thời gian thực và ghi ra
+
     cTime=time.time()
     fps = 1/(cTime-pTime)
     pTime = cTime
@@ -62,10 +62,8 @@ while True:
       
     cv2.imshow("Runtime", img)
     
-    # Thoát khỏi vòng lặp 
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
-# Giải phóng tài nguyên và đóng cửa sổ
 cap.release()
 cv2.destroyAllWindows()
